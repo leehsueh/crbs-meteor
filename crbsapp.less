@@ -1,5 +1,31 @@
 /* CSS declarations go here */
+body {
+  overflow-x: hidden;
+}
 .scrollable-region {
   height:400px;
   overflow-y: scroll;
+}
+.thumbnails {
+  [class*="span"] {
+    margin-left: 0;
+    margin-right:5px;
+  }
+}
+#notes-container {
+  position: absolute;
+  right: 10px;
+  top: 50px;
+  width: 200px;
+  background: #eee;
+  padding: 0 10px;
+  &.putaway {
+    margin-right: -200px;
+  }
+  .toggle-notes {
+    background: #eee;
+    margin-left: -50px;
+    display: block;
+    padding:5px 10px;
+  }
 }

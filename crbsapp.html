@@ -8,6 +8,8 @@
     {{> passages_area}}
     
   </div>
+  
+  {{> notes_area}}
 </body>
 
 <template name="passage_form">
@@ -28,38 +30,31 @@
 
 <template name="passages_area">
   <!-- <h2>{{passages.count}} Passages</h2> -->
-  <!--div class="row-fluid">
+  <div class="row-fluid">
     <ul class="thumbnails">
       {{#each passages}}
-      <li class="span6" >
+      <li class="span4">
         <div class="thumbnail">
         {{> passage_block}}    
         </div>
       </li>
       {{/each}}
     </ul>
-  </div-->
-  <div class="row-fluid">
-    {{#each passages}}
-      <div class="span{{spanWidth}}">
-      {{> passage_block}}
-      </div>
-    {{/each}}
-    <div class="span3">
-      {{> notes_area}}
-    </div>
   </div>
 </template>
 
 <template name="notes_area">
-  <h2>Notes <small><a href="#" class="btn-clear-chat">[clear chat]</a></small></h2>
-  <ul class="unstyled notes-list scrollable-region">
-    {{#each notes}}
-    <li><span class="label">{{noteAuthor}}</span>: {{noteText}}</li>
-    {{/each}}
-  </ul>
-  <form>
-    <input type="text" class="input-block-level" id="new-note">
-    <button class="btn btn-block btn-add-note">Add Note as {{currentAuthor}}</button>
-  </form>
+  <div id="notes-container">
+    <a href="#" class="toggle-notes">Toggle</a>
+    <h2>Notes <small><a href="#" class="btn-clear-chat">[clear chat]</a></small></h2>
+    <ul class="unstyled notes-list scrollable-region">
+      {{#each notes}}
+      <li><span class="label">{{noteAuthor}}</span>: {{noteText}}</li>
+      {{/each}}
+    </ul>
+    <form>
+      <input type="text" class="input-block-level" id="new-note">
+      <button class="btn btn-block btn-add-note">Add Note as {{currentAuthor}}</button>
+    </form>
+  </div>
 </template>

@@ -3,7 +3,7 @@ Notes = new Meteor.Collection("notes");
 
 API_URL = 'http://api.biblia.com/v1/bible/content/KJV.txt'
 API_KEY = "6936276c430fe411a35bb1f6ae786c19"
-MAX_PASSAGES_TO_SHOW = 3;
+MAX_PASSAGES_TO_SHOW = 6;
 
 if (Meteor.isClient) {
   Meteor.startup(function() {
@@ -108,6 +108,19 @@ if (Meteor.isClient) {
     },
     'click .btn-clear-chat' : function(e, template) {
       Notes.remove({});
+    },
+    'click .toggle-notes' : function(e, template) {
+      e.preventDefault();
+      var notes = $(template.firstNode);
+      if (parseInt(notes.css("margin-right")) < 0) {
+        notes.animate({
+          'marginRight': 0
+        })
+      } else {
+        notes.animate({
+          'marginRight': -200
+        })
+      }
     }
   });
 
