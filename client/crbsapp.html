@@ -4,18 +4,15 @@
 
 <body>
   <div class="container">
-    {{> passage_form}}
-    {{> passages_area}}
-    
+    {{renderPage}}
   </div>
-  
-  {{> notes_area}}
 </body>
 
 <template name="passage_form">
-  <h1>Add a Passage</h1>
+  <h3>Add a Passage</h3>
   <form class="form form-horizontal">
-    <input type="text" id="new-reference"> <button class="btn btn-add">Add</button>&nbsp;&nbsp;<span class="text-error">{{errorMessage}} [<a href="#" class="close-alert">close</a>]</span>
+    <input type="text" id="new-reference"> <button class="btn btn-add">Add</button>
+    {{#if errorMessage}}&nbsp;&nbsp;<span class="text-error">{{errorMessage}} [<a href="#" class="close-alert">close</a>]</span>{{/if}}
   </form>
 </template>
 
@@ -56,5 +53,41 @@
       <input type="text" class="input-block-level" id="new-note">
       <button class="btn btn-block btn-add-note">Add Note as {{currentAuthor}}</button>
     </form>
+  </div>
+</template>
+
+<template name="space">
+  <ul class="breadcrumb">
+    <li><a href="/">Spaces</a> <span class="divider">/</span></li>
+    <li>{{spaceName}}</li>
+  </ul>
+  <h1>{{spaceName}}</h1>
+  {{> passage_form}}
+  {{> passages_area}}
+</template>
+
+<template name="spaces">
+  <h2>Spaces</h2>
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th># of Passages</th>
+      </tr>
+    </thead>
+    <tbody>
+    {{#each spaces}}
+      <tr>
+        <td><a href="/space/{{_id}}">{{name}}</a></td>
+        <td>{{passage_refs}}</td>
+      </tr>
+    {{/each}}
+    </tbody>
+  </table>
+  <div class="well">
+    <div class="input-append">
+      <input class="span2" id="new-space-name" placeholder="create a new space" type="text">
+      <button class="btn" type="button">Go!</button>
+    </div>
   </div>
 </template>

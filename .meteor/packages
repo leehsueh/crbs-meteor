@@ -9,3 +9,5 @@ preserve-inputs
 less
 jquery
 bootstrap
+router
+font-awesome
