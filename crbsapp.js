@@ -66,6 +66,12 @@ if (Meteor.isClient) {
     spaces: function() {
       console.log("getting spaces")
       return Spaces.find();
+    },
+    listed_passage_refs: function() {
+      return this.passage_refs.join(", ")
+    },
+    dataLoaded: function() {
+      return Session.get("data_loaded");
     }
   });
 
@@ -77,15 +83,37 @@ if (Meteor.isClient) {
         Spaces.insert({ name: name, passage_refs: [] });
         nameInput.value = "";
       }
+    },
+    'click .delete' : function(e, template) {
+      var confirmDelete = confirm("Are you sure you want to delete " + this.name + "?");
+      if (confirmDelete) {
+        Spaces.remove({ _id: this._id });
+      }
     }
   })
 
   /* Single space */
   Template.space.helpers({
+    space: function() {
+      if (Session.get("data_loaded")) {
+        return Spaces.findOne(Session.get("currentSpaceId"));
+      }
+    },
     spaceName: function() {
       if (Session.get("data_loaded")) {
         return Spaces.findOne(Session.get("currentSpaceId")).name;
       }
+    },
+    dataLoaded: function() {
+      return Session.get("data_loaded");
+    }
+  });
+  Template.space.events({
+    'blur .editable-space-name' : function(e, template) {
+      var newName = e.currentTarget.textContent;
+      console.log(template);
+      console.log(newName);
+      Spaces.update(Session.get('currentSpaceId'), { $set: { name: newName }});
     }
   })
 
@@ -97,6 +125,7 @@ if (Meteor.isClient) {
   Template.passage_form.events({
     'submit form' : function(e) {
       e.preventDefault();
+      console.log(this);
     },
     'click .btn-add' : function (e, template) {
       // template data, if any, is available in 'this'
@@ -188,6 +217,11 @@ if (Meteor.isClient) {
   }
 
   /* Single Passage */
+  Template.passage_block.helpers({
+    readOnly: function() {
+      return Spaces.findOne(Session.get('currentSpaceId')).read_only;
+    }
+  })
   Template.passage_block.events({
     'click .btn-delete-passage' : function(e) {
       console.log(this._id);

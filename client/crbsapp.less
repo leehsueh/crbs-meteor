@@ -29,3 +29,11 @@ body {
     padding:5px 10px;
   }
 }
+h1, h2, h3, h4, h5 {
+  .show-on-hover {
+    display: none;
+  }
+  &:hover {
+    .show-on-hover { display: inline;}
+  }
+}

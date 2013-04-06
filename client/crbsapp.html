@@ -18,7 +18,7 @@
 
 <template name="passage_block">
   <div class="well">
-    <h3>{{reference}} <small><a href="#" class="btn-delete-passage">Remove</a></small></h3>
+    <h3>{{reference}}{{#if readOnly }} {{else}} <small><a href="#" class="btn-delete-passage">Remove</a></small>{{/if}}</h3>
     <div class="passage-content scrollable-region" style="height:400px">
       {{{passage_text}}}
     </div>
@@ -57,29 +57,55 @@
 </template>
 
 <template name="space">
-  <ul class="breadcrumb">
-    <li><a href="/">Spaces</a> <span class="divider">/</span></li>
-    <li>{{spaceName}}</li>
-  </ul>
-  <h1>{{spaceName}}</h1>
-  {{> passage_form}}
-  {{> passages_area}}
+  {{#if dataLoaded}}
+    {{#with space}}
+      <ul class="breadcrumb">
+        <li><a href="/">Spaces</a> <span class="divider">/</span></li>
+        <li>{{name}}</li>
+      </ul>
+      <h1>
+        {{#if read_only}}
+          {{name}}
+        {{else}}
+          <span class="editable-space-name" contenteditable=true>{{name}}</span> <small class="show-on-hover">click to edit</small>
+        {{/if}}
+      </h1>
+      {{#if read_only}}
+        <p>{{passage_refs.length}} passage(s)</p>
+      {{else}}
+        {{> passage_form space}}
+      {{/if}}
+      {{> passages_area}}
+    {{/with}}
+  {{else}}
+    <p>Loading Space...</p>
+  {{/if}}
 </template>
 
 <template name="spaces">
   <h2>Spaces</h2>
+  {{#if dataLoaded}}
   <table class="table">
     <thead>
       <tr>
         <th>Name</th>
-        <th># of Passages</th>
+        <th>Passages</th>
+        <th>Permissions</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
     {{#each spaces}}
       <tr>
         <td><a href="/space/{{_id}}">{{name}}</a></td>
-        <td>{{passage_refs}}</td>
+        <td>{{listed_passage_refs}}</td>
+        <td>{{#if read_only}}
+          <i class="icon-eye-open"></i>
+          {{else}}
+          <i class="icon-pencil"></i>
+          {{/if}}
+        </td>
+        <td><a href="#" class="delete"><i class="icon-remove"> Delete</i></a></td>
       </tr>
     {{/each}}
     </tbody>
@@ -87,7 +113,10 @@
   <div class="well">
     <div class="input-append">
       <input class="span2" id="new-space-name" placeholder="create a new space" type="text">
-      <button class="btn" type="button">Go!</button>
+      <button class="btn btn-primary" type="button">Add!</button>
     </div>
   </div>
+  {{else}}
+  <p>Loading...</p>
+  {{/if}}
 </template>
