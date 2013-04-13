@@ -3,7 +3,6 @@ body {
   overflow-x: hidden;
 }
 .scrollable-region {
-  height:400px;
   overflow-y: scroll;
 }
 .thumbnails {
@@ -13,20 +12,25 @@ body {
   }
 }
 #notes-container {
-  position: absolute;
-  right: 10px;
-  top: 50px;
-  width: 200px;
+  @height: 400px;
+  position: fixed;
+  bottom: 0;
+  right:10px;
+  width: 350px;
+  height: @height;
   background: #eee;
+  border: 1px solid #aaa;
   padding: 0 10px;
   &.putaway {
-    margin-right: -200px;
+    bottom: -@height + 30;
   }
   .toggle-notes {
     background: #eee;
-    margin-left: -50px;
     display: block;
     padding:5px 10px;
+  }
+  .notes-list {
+    max-height: @height - 180;
   }
 }
 h1, h2, h3, h4, h5 {

@@ -40,22 +40,6 @@
   </div>
 </template>
 
-<template name="notes_area">
-  <div id="notes-container">
-    <a href="#" class="toggle-notes">Toggle</a>
-    <h2>Notes <small><a href="#" class="btn-clear-chat">[clear chat]</a></small></h2>
-    <ul class="unstyled notes-list scrollable-region">
-      {{#each notes}}
-      <li><span class="label">{{noteAuthor}}</span>: {{noteText}}</li>
-      {{/each}}
-    </ul>
-    <form>
-      <input type="text" class="input-block-level" id="new-note">
-      <button class="btn btn-block btn-add-note">Add Note as {{currentAuthor}}</button>
-    </form>
-  </div>
-</template>
-
 <template name="space">
   {{#if dataLoaded}}
     {{#with space}}
@@ -76,6 +60,20 @@
         {{> passage_form space}}
       {{/if}}
       {{> passages_area}}
+
+      <div id="notes-container">
+        <a href="#" class="toggle-notes">Toggle</a>
+        <h2>Notes <small><a href="#" class="btn-clear-chat">[clear chat]</a></small></h2>
+        <ul class="unstyled notes-list scrollable-region">
+          {{#each space.notes}}
+          <li><span class="label">{{noteAuthor}}</span>: {{noteText}}</li>
+          {{/each}}
+        </ul>
+        <form>
+          <input type="text" class="input-block-level" id="new-note">
+          <button class="btn btn-block btn-add-note">Add Note as {{currentAuthor}}</button>
+        </form>
+      </div>
     {{/with}}
   {{else}}
     <p>Loading Space...</p>

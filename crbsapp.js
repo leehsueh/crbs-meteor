@@ -114,6 +114,44 @@ if (Meteor.isClient) {
       console.log(template);
       console.log(newName);
       Spaces.update(Session.get('currentSpaceId'), { $set: { name: newName }});
+    },
+    'submit form' : function(e) {
+      e.preventDefault();
+    },
+    'click .btn-add-note' : function(e, template) {
+      var textarea = $(template.find("#new-note"));
+      var noteText = textarea.val();
+      if (noteText) {
+        if (!Session.get("noteAuthor")) {
+          var name = prompt("Please enter your alias");
+          Session.set("noteAuthor", name);
+        }
+        textarea.val("");
+        Spaces.update(
+          Session.get('currentSpaceId'),
+          { $push:
+            { notes:
+              { 
+                noteAuthor: Session.get("noteAuthor"),
+                noteText: noteText
+              }
+            }
+          }
+        );
+      }
+    },
+    'click .btn-clear-chat' : function(e, template) {
+      Spaces.update(
+        Session.get('currentSpaceId'),
+        { $set:
+          { notes: [] }
+        }
+      );
+    },
+    'click .toggle-notes' : function(e, template) {
+      e.preventDefault();
+      var notes = $(template.find("#notes-container"));
+      notes.toggleClass("putaway");
     }
   })
 
@@ -229,49 +267,10 @@ if (Meteor.isClient) {
     }
   });
 
-  /* Space notes */
-  Template.notes_area.events({
-    'submit form' : function(e) {
-      e.preventDefault();
-    },
-    'click .btn-add-note' : function(e, template) {
-      var textarea = $(template.find("#new-note"));
-      var noteText = textarea.val();
-      if (noteText) {
-        if (!Session.get("noteAuthor")) {
-          var name = prompt("Please enter your alias");
-          Session.set("noteAuthor", name);
-        }
-        textarea.val("");
-        console.log(noteText);
-        Notes.insert({noteAuthor: Session.get("noteAuthor"), noteText: noteText});
-      }
-    },
-    'click .btn-clear-chat' : function(e, template) {
-      Notes.remove({});
-    },
-    'click .toggle-notes' : function(e, template) {
-      e.preventDefault();
-      var notes = $(template.firstNode);
-      if (parseInt(notes.css("width")) <= 0) {
-        notes.animate({
-          'width': 200
-        })
-      } else {
-        notes.animate({
-          'width': 0
-        })
-      }
-    }
-  });
-
-  Template.notes_area.notes = function() {
-    return Notes.find();
-  }
-  Template.notes_area.currentAuthor = function() {
+  Template.space.currentAuthor = function() {
     return Session.get("noteAuthor");
   }
-  Template.notes_area.rendered = function() {
+  Template.space.rendered = function() {
     // scroll chat to bottom
     $(".notes-list").scrollTop(999999);
   }
