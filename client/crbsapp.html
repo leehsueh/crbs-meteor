@@ -61,7 +61,7 @@
       {{/if}}
       {{> passages_area}}
 
-      <div id="notes-container">
+      <div id="notes-container"{{#if putaway}} class="putaway"{{/if}}>
         <a href="#" class="toggle-notes">Toggle</a>
         <h2>Notes <small><a href="#" class="btn-clear-chat">[clear chat]</a></small></h2>
         <ul class="unstyled notes-list scrollable-region">

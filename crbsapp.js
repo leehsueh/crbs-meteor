@@ -47,13 +47,15 @@ if (Meteor.isClient) {
   Meteor.Router.add({
     '/': 'spaces',
     '/space/:id': function(id) {
+      console.log("in router")
       Session.set('currentSpaceId', id);
       return 'space';
     }
   })
 
   Meteor.startup(function() {
-     Session.set('data_loaded', false); 
+     Session.set('data_loaded', false);
+     Session.set('putaway', false);
   }); 
 
   Meteor.subscribe('default_db_data', function(){
@@ -106,6 +108,9 @@ if (Meteor.isClient) {
     },
     dataLoaded: function() {
       return Session.get("data_loaded");
+    },
+    putaway: function() {
+      return Session.get("putaway");
     }
   });
   Template.space.events({
@@ -151,7 +156,8 @@ if (Meteor.isClient) {
     'click .toggle-notes' : function(e, template) {
       e.preventDefault();
       var notes = $(template.find("#notes-container"));
-      notes.toggleClass("putaway");
+      console.log(Session.get("putaway"));
+      Session.set("putaway", !Session.get("putaway"));
     }
   })
 
