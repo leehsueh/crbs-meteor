@@ -12,10 +12,10 @@ function fetchPassage(api_url, params, successCallback, errorCallback, completeC
     data: params,
     async: false,
     success: function(data) {
-      console.log(data.split("\n"));
+      // console.log(data.split("\n"));
       var refParts = data.split("\n");
       var fullRefWithVersion = refParts[0].replace("–","-"); // replace long dash with regular hyphen
-      var passageText = refParts.slice(1).join("<br>");
+      var passageText = refParts.slice(1).join("<br>").replace(/([0-9]+)/g, "<sup>$1</sup>");
       successCallback(fullRefWithVersion, passageText);
     },
     error: errorCallback,
@@ -25,6 +25,7 @@ function fetchPassage(api_url, params, successCallback, errorCallback, completeC
 }
 
 function getFullReference(textToScan) {
+  textToScan = textToScan[0].toUpperCase() + textToScan.slice(1);
   var api_url = "http://api.biblia.com/v1/bible/scan/";
   var result = 'not set';
   $.ajax({
@@ -33,10 +34,28 @@ function getFullReference(textToScan) {
     data: { key: API_KEY, text: textToScan },
     async: false,
     success: function(data) {
-      result = data.results[0].passage;
+      if (data.results.length > 0) {
+        result = data.results[0].passage;  
+      } else {
+        result = false;
+      }
     }
   });
+  if (!result) return result;
   return result.replace("–","-"); // replace long dash with regular hyphen
+}
+
+function parseReference(fullRef) {
+  var regex = /(((1|2) )?([A-Za-z ]+)) ([0-9]{1,3})/,
+    matches = fullRef.match(regex);
+  if (matches && matches.length > 5) {
+    return {
+      book: matches[1],
+      chapter: matches[5]
+    };
+  } else {
+    return null;
+  }
 }
 if (Meteor.isServer) {
   Meteor.publish('default_db_data', function(){
@@ -55,7 +74,7 @@ if (Meteor.isClient) {
 
   Meteor.startup(function() {
      Session.set('data_loaded', false);
-     Session.set('putaway', false);
+     Session.set('putaway', true);
   }); 
 
   Meteor.subscribe('default_db_data', function(){
@@ -169,15 +188,26 @@ if (Meteor.isClient) {
   Template.passage_form.events({
     'submit form' : function(e) {
       e.preventDefault();
-      console.log(this);
+      console.log("form submit");
     },
     'click .btn-add' : function (e, template) {
       // template data, if any, is available in 'this'
-      var space = Spaces.findOne(Session.get('currentSpaceId'));
-      var inputElem = $(template.find("#new-reference"));
-      var reference = getFullReference(inputElem.val());
-      var addButton = $(e.currentTarget);
+      var space = Spaces.findOne(Session.get('currentSpaceId')),
+        inputElem = $(template.find("#new-reference")),
+        enteredRef = inputElem.val(),
+        addButton = $(e.currentTarget);
+
       addButton.attr("disabled", "disabled");
+      if (!enteredRef) {
+        Session.set("errorMessage", "Please enter a reference");
+        return;
+      }
+      var reference = getFullReference(enteredRef);
+      if (reference === false) {
+        Session.set("errorMessage", "Uh oh..." + enteredRef + " is not a valid reference");
+        inputElem.val("");
+        return;
+      }
       if (space.passage_refs && space.passage_refs.length >= MAX_PASSAGES_TO_SHOW) {
         Session.set("errorMessage", "Remove a passage before adding another one.");
         return;
@@ -194,7 +224,7 @@ if (Meteor.isClient) {
       var successCallback = function(fullRefWithVersion, passageText) {
         if (fullRefWithVersion && passageText) {
           fullRef = getFullReference(fullRefWithVersion);
-          console.log(fullRef);
+          // console.log(fullRef);
           if (Spaces.find({_id: Session.get('currentSpaceId'), passage_refs: fullRef }))
           if (Passages.find({reference: fullRef}).count() == 0) {
             console.log("inserting");
@@ -225,11 +255,11 @@ if (Meteor.isClient) {
 
   /* Passages Area */
   Template.passages_area.passages = function() {
-    var spaceId = Session.get('currentSpaceId');
-    console.log(spaceId);
+    var spaceId = Session.get('currentSpaceId'),
+      passages = [];
     if (Session.get("data_loaded")) {
       var space = Spaces.findOne(spaceId);
-
+      console.log(space.passage_refs)
       // check if Passages collections has the text of the passage
       _.each(space.passage_refs, function(ref) {
         console.log("finding " + ref)
@@ -246,12 +276,15 @@ if (Meteor.isClient) {
           }
           var errorCallback = function(jqXHR, textStatus, errorThrown) {
             console.log("Error fetching passage " + ref);
+            Passages.insert({reference: ref, passage_text: "Invalid passage!" });
           }
           
           fetchPassage(API_URL, params, successCallback, errorCallback, null);
         }
+        passages.push(Passages.findOne({reference: ref}))
       });
-      return Passages.find({ reference: { $in: space.passage_refs || []}});
+      // return Passages.find({ reference: { $in: space.passage_refs || []}});
+      return passages;
     }
   }
 
@@ -270,6 +303,39 @@ if (Meteor.isClient) {
     'click .btn-delete-passage' : function(e) {
       console.log(this._id);
       Spaces.update({_id: Session.get("currentSpaceId")}, { $pull: { passage_refs: this.reference }});
+    },
+    'click .btn-prev-chapter' : function(e) {
+      var space = Spaces.findOne(Session.get("currentSpaceId")),
+        passageRefs = space.passage_refs,
+        indexToReplace = passageRefs.indexOf(this.reference),
+        refParts = parseReference(this.reference),
+        prevChapter = Math.max(parseInt(refParts.chapter) - 1, 1),
+        updatedRef = refParts.book + " " + prevChapter;
+      console.log(updatedRef);
+      passageRefs[indexToReplace] = updatedRef;
+      Spaces.update({_id: space._id}, { $set: { passage_refs: passageRefs }});
+    },
+    'click .btn-full-chapter' : function(e) {
+      var space = Spaces.findOne(Session.get("currentSpaceId")),
+        passageRefs = space.passage_refs,
+        indexToReplace = passageRefs.indexOf(this.reference),
+        refParts = parseReference(this.reference),
+        updatedRef = refParts.book + " " + refParts.chapter;
+      console.log(updatedRef);
+      passageRefs[indexToReplace] = updatedRef;
+      Spaces.update({_id: space._id}, { $set: { passage_refs: passageRefs }});
+
+    },
+    'click .btn-next-chapter' : function(e) {
+      var space = Spaces.findOne(Session.get("currentSpaceId")),
+        passageRefs = space.passage_refs,
+        indexToReplace = passageRefs.indexOf(this.reference),
+        refParts = parseReference(this.reference);
+        nextChapter = parseInt(refParts.chapter) + 1,
+        updatedRef = refParts.book + " " + nextChapter;
+      console.log(updatedRef);
+      passageRefs[indexToReplace] = updatedRef;
+      Spaces.update({_id: space._id}, { $set: { passage_refs: passageRefs }});
     }
   });
 

@@ -12,13 +12,22 @@
   <h3>Add a Passage</h3>
   <form class="form form-horizontal">
     <input type="text" id="new-reference"> <button class="btn btn-add">Add</button>
+
     {{#if errorMessage}}&nbsp;&nbsp;<span class="text-error">{{errorMessage}} [<a href="#" class="close-alert">close</a>]</span>{{/if}}
   </form>
+      
 </template>
 
 <template name="passage_block">
   <div class="well">
-    <h3>{{reference}}{{#if readOnly }} {{else}} <small><a href="#" class="btn-delete-passage">Remove</a></small>{{/if}}</h3>
+    <h3>{{reference}}{{#unless readOnly }} <small><a href="#" class="btn-delete-passage">Remove</a></small>{{/unless}}</h3>
+    {{#unless readOnly}}
+      <div class="chapter-nav">
+        <a href="#" class="btn-prev-chapter">previous</a> |
+        <a href="#" class="btn-full-chapter">full</a> |
+        <a href="#" class="btn-next-chapter">next</a> 
+      </div>
+    {{/unless}}
     <div class="passage-content scrollable-region" style="height:400px">
       {{{passage_text}}}
     </div>
@@ -26,8 +35,7 @@
 </template>
 
 <template name="passages_area">
-  <!-- <h2>{{passages.count}} Passages</h2> -->
-  <div class="row-fluid">
+  <div class="row-fluid" style="clear: both">
     <ul class="thumbnails">
       {{#each passages}}
       <li class="span4">
@@ -47,6 +55,7 @@
         <li><a href="/">Spaces</a> <span class="divider">/</span></li>
         <li>{{name}}</li>
       </ul>
+      <h3 class="pull-right">{{passage_refs.length}} Passages</h3>
       <h1>
         {{#if read_only}}
           {{name}}
@@ -54,11 +63,9 @@
           <span class="editable-space-name" contenteditable=true>{{name}}</span> <small class="show-on-hover">click to edit</small>
         {{/if}}
       </h1>
-      {{#if read_only}}
-        <p>{{passage_refs.length}} passage(s)</p>
-      {{else}}
+      {{#unless read_only}}
         {{> passage_form space}}
-      {{/if}}
+      {{/unless}}
       {{> passages_area}}
 
       <div id="notes-container"{{#if putaway}} class="putaway"{{/if}}>
