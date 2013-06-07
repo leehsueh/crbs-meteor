@@ -58,8 +58,32 @@ function parseReference(fullRef) {
   }
 }
 if (Meteor.isServer) {
-  Meteor.publish('default_db_data', function(){
-    return Spaces.find();
+  Meteor.publish('public_spaces', function(){
+    return Spaces.find({"public": true});
+  });
+
+  Meteor.publish('authorized_spaces', function() {
+    return Spaces.find({$or: [
+      {user_id: this.userId},
+      {"public": true}
+    ]})
+  })
+
+  Meteor.publish('all_passages', function() {
+    return Passages.find();
+  });
+  Spaces.allow({
+    insert: function() { return true; }
+  })
+  Spaces.allow({
+    update: function(userId, space) {
+      return space.user_id === userId;
+    }
+  })
+  Passages.allow({
+    insert: function() {
+      return true;
+    }
   });
 }
 if (Meteor.isClient) {
@@ -77,16 +101,20 @@ if (Meteor.isClient) {
      Session.set('putaway', true);
   }); 
 
-  Meteor.subscribe('default_db_data', function(){
+  Meteor.subscribe('authorized_spaces', function(){
      //Set the reactive session as true to indicate that the data have been loaded
      Session.set('data_loaded', true); 
   });
+  Meteor.subscribe('all_passages');
 
   /* Spaces list */
   Template.spaces.helpers({
-    spaces: function() {
+    publicSpaces: function() {
       console.log("getting spaces")
-      return Spaces.find();
+      return Spaces.find({public: true});
+    },
+    mySpaces: function() {
+      return Spaces.find({user_id: Meteor.userId() || ""})
     },
     listed_passage_refs: function() {
       return this.passage_refs.join(", ")
@@ -101,7 +129,7 @@ if (Meteor.isClient) {
       var nameInput = template.find("#new-space-name");
       var name = nameInput.value;
       if (name) {
-        Spaces.insert({ name: name, passage_refs: [] });
+        Spaces.insert({ name: name, passage_refs: [], user_id: Meteor.userId(), public: !Meteor.userId() });
         nameInput.value = "";
       }
     },
@@ -110,6 +138,14 @@ if (Meteor.isClient) {
       if (confirmDelete) {
         Spaces.remove({ _id: this._id });
       }
+    }
+  })
+
+  /* Space permissions */
+  Template.space_permissions.helpers({
+    writeAccess: function() {
+      var space = Spaces.findOne(this._id);
+      return space.user_id === Meteor.userId()
     }
   })
 
@@ -130,6 +166,10 @@ if (Meteor.isClient) {
     },
     putaway: function() {
       return Session.get("putaway");
+    },
+    writeAccess: function() {
+      var space = Spaces.findOne(Session.get("currentSpaceId"));
+      return space.user_id === Meteor.userId()
     }
   });
   Template.space.events({
@@ -138,6 +178,11 @@ if (Meteor.isClient) {
       console.log(template);
       console.log(newName);
       Spaces.update(Session.get('currentSpaceId'), { $set: { name: newName }});
+    },
+    'change #public-flag' : function(e, template) {
+      var checked = e.target.checked || false;
+      Spaces.update(Session.get('currentSpaceId'), { $set: { public: checked }});
+
     },
     'submit form' : function(e) {
       e.preventDefault();
@@ -295,8 +340,9 @@ if (Meteor.isClient) {
 
   /* Single Passage */
   Template.passage_block.helpers({
-    readOnly: function() {
-      return Spaces.findOne(Session.get('currentSpaceId')).read_only;
+    writeAccess: function() {
+      var space = Spaces.findOne(Session.get('currentSpaceId'));
+      return space.user_id === Meteor.userId();
     }
   })
   Template.passage_block.events({
