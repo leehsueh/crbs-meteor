@@ -33,7 +33,7 @@
   <h3>Add a Passage</h3>
   <form class="form form-horizontal">
     <input type="text" id="new-reference"> <button class="btn btn-add">Add</button>
-
+    <br>
     {{#if errorMessage}}&nbsp;&nbsp;<span class="text-error">{{errorMessage}} [<a href="#" class="close-alert">close</a>]</span>{{/if}}
   </form>
       
@@ -69,6 +69,15 @@
   </div>
 </template>
 
+<template name="invite_users">
+  <h3>Share This Space</h3>
+  <form class="form form-horizontal">
+    <input type="text" id="new-name" placeholder="enter user's full name"> <button class="btn btn-add">Add</button>
+    <a href="#" rel="bootstrap-tooltip" data-placement="top" data-trigger="hover" id="shared-tooltip" data-toggle="tooltip" >Shared users</a>
+    
+  </form>
+</template>
+
 <template name="space">
   {{#if dataLoaded}}
     {{#with space}}
@@ -85,11 +94,18 @@
         {{else}}
           <span class="editable-space-name" contenteditable=true>{{name}}</span> <small class="show-on-hover">click to edit</small>
         {{/unless}}
-
       </h1>
 
       {{#if writeAccess}}
-        {{> passage_form space}}
+        <div class="row-fluid" style="clear:both">
+          <div class="span4">
+            {{> passage_form space}}
+          </div>
+          <div class="span8">
+            {{> invite_users space}}
+          </div>
+        </div>
+        
       {{/if}}
       {{> passages_area}}
 
@@ -147,6 +163,25 @@
             </tbody>
           </table>
         {{/unless}}
+        {{#if sharedSpaces.count}}
+          <h3>Spaces Shared with Me</h3>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Passages</th>
+              </tr>
+            </thead>
+            <tbody>
+            {{#each sharedSpaces}}
+              <tr>
+                <td><a href="/space/{{_id}}">{{name}}</a></td>
+                <td>{{listed_passage_refs}}</td>
+              </tr>
+            {{/each}}
+            </tbody>
+          </table>
+        {{/if}}
       {{/unless}}
         
           

@@ -58,6 +58,10 @@ function parseReference(fullRef) {
   }
 }
 if (Meteor.isServer) {
+  Meteor.publish("user_data", function () {
+    return Meteor.users.find({},
+        {fields: {'profile.name': 1, '_id': 1}});
+  });
   Meteor.publish('public_spaces', function(){
     return Spaces.find({"public": true});
   });
@@ -65,6 +69,7 @@ if (Meteor.isServer) {
   Meteor.publish('authorized_spaces', function() {
     return Spaces.find({$or: [
       {user_id: this.userId},
+      {has_access: this.userId},
       {"public": true}
     ]})
   })
@@ -100,7 +105,7 @@ if (Meteor.isClient) {
      Session.set('data_loaded', false);
      Session.set('putaway', true);
   }); 
-
+  Meteor.subscribe('user_data')
   Meteor.subscribe('authorized_spaces', function(){
      //Set the reactive session as true to indicate that the data have been loaded
      Session.set('data_loaded', true); 
@@ -115,6 +120,9 @@ if (Meteor.isClient) {
     },
     mySpaces: function() {
       return Spaces.find({user_id: Meteor.userId() || ""})
+    },
+    sharedSpaces: function() {
+      return Spaces.find({has_access: Meteor.userId()})
     },
     listed_passage_refs: function() {
       return this.passage_refs.join(", ")
@@ -224,6 +232,45 @@ if (Meteor.isClient) {
       Session.set("putaway", !Session.get("putaway"));
     }
   })
+  
+  /* Invite users */
+  Template.invite_users.rendered = function() {
+    // $("[rel=bootstrap-tooltip]").tooltip();
+    var space = Spaces.findOne(Session.get('currentSpaceId'));
+    var users = _.map(space.has_access, function(userId) {
+      return Meteor.users.findOne(userId).profile.name;
+    });
+    $("#shared-tooltip").tooltip({
+      title: users.join(", ")
+    })
+  }
+  Template.invite_users.helpers({
+    invited_users: function() {
+      var space = Spaces.findOne(Session.get('currentSpaceId'));
+      users = _.map(space.has_access, function(userId) {
+        return Meteor.users.findOne(userId);
+      });
+      console.log(users);
+      return users;
+    }
+  });
+
+  Template.invite_users.events({
+    'submit form' : function(e) {
+      e.preventDefault();
+    },
+    'click .btn-add' : function(e, template) {
+      var space = Spaces.findOne(Session.get('currentSpaceId')),
+        inputElem = $(template.find("#new-name")),
+        newName = inputElem.val();
+      var users = Meteor.users.find({"profile.name": newName}).fetch();
+      if (users.length > 0) {
+        Spaces.update(space._id, {$push: {has_access: users[0]._id}})
+      } else {
+        alert("No user for this name")
+      }
+    }
+  })
 
   /* Passage Form */
   Template.passage_form.errorMessage = function() {
@@ -233,7 +280,6 @@ if (Meteor.isClient) {
   Template.passage_form.events({
     'submit form' : function(e) {
       e.preventDefault();
-      console.log("form submit");
     },
     'click .btn-add' : function (e, template) {
       // template data, if any, is available in 'this'
