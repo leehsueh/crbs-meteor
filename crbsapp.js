@@ -78,11 +78,17 @@ if (Meteor.isServer) {
     return Passages.find();
   });
   Spaces.allow({
-    insert: function() { return true; }
-  })
-  Spaces.allow({
+    insert: function() { return true; },
     update: function(userId, space) {
       return space.user_id === userId;
+    },
+    remove: function(userId, space) {
+      if (space.user_id) {
+        return space.user_id === userId;  
+      } else if (userId) {
+        return space.public;
+      }
+      return false;  // anyone can delete public spaces
     }
   })
   Passages.allow({

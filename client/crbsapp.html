@@ -157,7 +157,9 @@
                 <td>
                   {{> space_permissions this}}
                 </td>
-                <td><a href="#" class="delete"><i class="icon-remove"> Delete</i></a></td>
+                <td>
+                  {{#if currentUser}}<a href="#" class="delete"><i class="icon-remove"> Delete</i></a>{{/if}}
+                </td>
               </tr>
             {{/each}}
             </tbody>
