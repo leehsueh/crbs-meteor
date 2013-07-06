@@ -1,6 +1,6 @@
 
 
-API_URL = 'http://api.biblia.com/v1/bible/content/KJV.txt'
+API_URL = 'http://api.biblia.com/v1/bible/content/LEB.txt'
 API_KEY = "6936276c430fe411a35bb1f6ae786c19"
 MAX_PASSAGES_TO_SHOW = 6;
 
@@ -240,6 +240,11 @@ if (Meteor.isClient) {
   })
   
   /* Invite users */
+  function getUserNames() {
+    return Meteor.users.find().map(function(u) {
+      return u.profile.name;
+    });
+  }
   Template.invite_users.rendered = function() {
     // $("[rel=bootstrap-tooltip]").tooltip();
     var space = Spaces.findOne(Session.get('currentSpaceId'));
@@ -248,6 +253,10 @@ if (Meteor.isClient) {
     });
     $("#shared-tooltip").tooltip({
       title: users.join(", ")
+    });
+    
+    $("#new-name").typeahead({
+      source: getUserNames
     })
   }
   Template.invite_users.helpers({

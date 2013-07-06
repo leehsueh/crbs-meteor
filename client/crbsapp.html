@@ -70,12 +70,37 @@
 </template>
 
 <template name="invite_users">
-  <h3>Share This Space</h3>
-  <form class="form form-horizontal">
-    <input type="text" id="new-name" placeholder="enter user's full name"> <button class="btn btn-add">Add</button>
-    <a href="#" rel="bootstrap-tooltip" data-placement="top" data-trigger="hover" id="shared-tooltip" data-toggle="tooltip" >Shared users</a>
-    
-  </form>
+  <a data-toggle="modal" href="#shareModal">Share</a>
+  <div class="modal fade hide" id="shareModal">
+    <div class="modal-header">
+      <a data-dismiss="modal" class="close">&times;</a>
+      <h3>Share This Space</h3>
+    </div>
+    <div class="modal-body">
+      <form class="form form-horizontal">
+        <input type="text" id="new-name" placeholder="enter user's full name" data-provide="typeahead" data-source=""> <button class="btn btn-add">Add</button>
+        <a href="#" rel="bootstrap-tooltip" data-placement="top" data-trigger="hover" id="shared-tooltip" data-toggle="tooltip" >Shared users</a>
+      </form>
+      <h4>Shared with</h4>
+      <table class="table">
+        <thead>
+          <tr>
+            <td>Name</td>
+            <td>Action</td>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each invited_users}}
+            <tr>
+              <td>{{profile.name}}</td>
+              <td><button class="btn btn-small">Remove</button></td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer"></div>
+  </div>
 </template>
 
 <template name="space">
